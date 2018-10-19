@@ -9,8 +9,8 @@ import uuid
 import os
 import re
 
-from AgentPool import AgentPool
-from MysqlManager import MysqlManager
+from spider.AgentPool import AgentPool
+from spider.MysqlManager import MysqlManager
 
 class Spider:
     def __init__(self, list_url, brand, class_):
