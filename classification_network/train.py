@@ -25,10 +25,12 @@ lr = 1e-3
 optimizer = optim.Adam(model.parameters(), lr=lr)
 
 # train
-epochs = 20
+epochs = 6
 today = str(date.today())
 for epoch in range(epochs):
     win = None
+    loss_sum = 0
+    batch_num = 0
     for batch_index, (x, y) in enumerate(my_data_loader):
         optimizer.zero_grad()
         inputs = Variable(x.cuda())
@@ -37,12 +39,15 @@ for epoch in range(epochs):
         loss = my_loss(outputs, targets)
         loss.backward()
         optimizer.step()
-        print('epoch: ' + str(epoch + 1) + ',batch: ' + str(batch_index + 1) + ',loss: ' + str(loss.item()))
+        # print('epoch: ' + str(epoch + 1) + ',batch: ' + str(batch_index + 1) + ',loss: ' + str(loss.item()))
+        loss_sum = loss.item()
+        batch_num += 1
         # 画loss曲线
         if win:
             win = viz.line(Y=torch.Tensor([loss.item()]), X=torch.Tensor([batch_index]), win=win, update='append')
         else:
             win = viz.line(Y=torch.Tensor([loss.item()]), X=torch.Tensor([batch_index]))
+    print("epoch %d, loss %.4f" % (epoch, loss_sum/batch_num))
     # 保存model
     model_dir = "./models/%s" % today
     if not os.path.exists(model_dir):

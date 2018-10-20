@@ -77,10 +77,10 @@ class Spider:
 
     @MyLog
     def get_all_image_url(self, item_url):
-        logging.warning(item_url)
+        logging.info(item_url)
         res = set()
         agent = self.agent_pool.get_agent()
-        logging.warning(agent)
+        logging.info(agent)
         proxies = {
             "http": agent,
             "https": agent,
@@ -138,8 +138,10 @@ class Spider:
         logging.info("this page has %d items" % len(self.all_item_url))
         return len(self.all_item_url)
 
+    @MyLog
     def save_image(self, url, save_dir):
-        # requests.session().keep_alive = False
+        logging.info("image url: %s" % url)
+        requests.session().keep_alive = False
         image = requests.get(url, timeout=self.image_time_out)
         image.raise_for_status()
         image_name = url.split('/')[-1]

@@ -1,7 +1,7 @@
 from multiprocessing import Process
 from spider.MysqlManager import MysqlManager
 from Spider import Spider
-import os
+import random
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -15,6 +15,7 @@ logging.basicConfig(level=logging.INFO)
 
 if __name__ == "__main__":
     records = MysqlManager().fetch_all_source()
+    random.shuffle(records)
     for record in records:
         url = record.get("url")
         brand = record.get("brand")

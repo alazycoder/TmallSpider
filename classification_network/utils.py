@@ -23,7 +23,7 @@ def train_data_loader(image_dir):
 
 def pick_data_loader(root):
     dataset = PickDataSet(root)
-    data_loader = data.dataloader(dataset)
+    data_loader = data.DataLoader(dataset, batch_size=64)  # 因为待分类的文件夹都比较小，64保证能一次load完。
     return data_loader
 
 
@@ -46,4 +46,4 @@ class PickDataSet(data.Dataset):
         image_path = os.path.join(self.root, self.image_files[index])
         img = Image.open(image_path)
         img = img.convert('RGB')
-        return self.transform(img)
+        return self.transform(img), image_path
