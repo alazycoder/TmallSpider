@@ -67,10 +67,3 @@ class Porter:
         if self.picker is None:
             self.picker = Picker(self.model_path)
         return self.picker.pick(work_space=target_dir)
-
-feature_combiners=[]
-feature_combiners.append(FeatureCombiner(brand="handuyishe", class_=u"T恤"))
-feature_combiners.append(FeatureCombiner(brand="hm", class_=u"衬衫"))
-
-porter = Porter(model_path=r"D:\python_project\TmallSpider\classification_network\models\2018-10-21\4.pkl")
-porter.file_picker(target_dir=r"E:\tamll_picked", feature_combiners=feature_combiners)

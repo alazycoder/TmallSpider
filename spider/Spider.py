@@ -23,7 +23,7 @@ class Spider:
         self.mysql_manager = MysqlManager()
         self.list_url = list_url
         self.all_item_url = set()
-        self.max_try_times = 50
+        self.max_try_times = 100
         self.item_page_time_out = 30
         self.image_time_out = 10
         self.brand = brand
@@ -50,7 +50,7 @@ class Spider:
     def get_driver(self):
         # 从这里得到的driver要执行quit函数
         opt = webdriver.ChromeOptions()
-        agent = self.agent_pool.get_agent()
+        agent = self.agent_pool.get_data5u_agent()
         opt.add_argument("--proxy-server=http://%s" % agent)
         opt.add_argument('--headless')
         logging.info("agent : %s" % agent)
@@ -70,6 +70,7 @@ class Spider:
             except:
                 times += 1
                 traceback.print_exc()
+                self.sleep(15, 20)
         if times >= self.max_try_times:
             logging.error("%s had failed %d times" % (func.__name__, times))
             exit(0)
@@ -79,11 +80,11 @@ class Spider:
     def get_all_image_url(self, item_url):
         logging.info(item_url)
         res = set()
-        agent = self.agent_pool.get_agent()
+        agent = self.agent_pool.get_data5u_agent()
         logging.info(agent)
         proxies = {
             "http": agent,
-            "https": agent,
+            # "https": agent,
         }
         requests.session().keep_alive = False
         r = requests.get(item_url, proxies=proxies, timeout=self.item_page_time_out)
@@ -97,14 +98,14 @@ class Spider:
         for a in all_a:
             img = a.find('img')
             res.add("https:" + img.attrs["data-src"])
-        # 位置2  颜色挑选 按imgae url 长度排序， 最多选3个
 
+        # 位置2  颜色挑选 按imgae url 长度排序， 最多选3个
         color_detail_imgs = self.item_page_image_pattern.findall(r.text)
         color_detail_imgs = sorted(color_detail_imgs, key=lambda s: len(s), reverse=True)
         for i in range(min(3, len(color_detail_imgs))):
             res.add("https:" + color_detail_imgs[i])
-        # 获取label
 
+        # 获取label
         labels = self.item_page_label_pattern.findall(str(r.text))
         if len(labels) != 1:
             logging.error("len of labels in this page is not 1")

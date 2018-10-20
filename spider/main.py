@@ -3,6 +3,8 @@ from spider.MysqlManager import MysqlManager
 from Spider import Spider
 import random
 import logging
+import os
+import time
 
 logging.basicConfig(level=logging.INFO)
 
@@ -22,5 +24,6 @@ if __name__ == "__main__":
         class_ = record.get("class")
         # p = Process(target=crawl, args=(url, brand, class_))
         # p.start()
+        # time.sleep(2)
         spider = Spider(url, brand, class_)
         spider.work()
