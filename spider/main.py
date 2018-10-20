@@ -6,7 +6,7 @@ import logging
 import os
 import time
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR)
 
 
 # def crawl(url, brand, class_):

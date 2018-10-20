@@ -41,7 +41,7 @@ class MysqlManager:
             logging.info("success")
         except:
             db.rollback()
-            logging.info("fail")
+            logging.error("fail")
 
     @MyLog
     def check_item_url_crawled(self, item_url):
@@ -62,6 +62,9 @@ class MysqlManager:
 
     @MyLog
     def add_label_to_item_url(self, item_url, label):
+        label = label.replace("\"", "\\\"")
+        label = label.replace("\t", "")
+        label = label.replace("\n", "")
         db = MySQLdb.connect(host=self.host, port=self.port, user=self.user, password=self.password,
                              database=self.database, charset='utf8')
         cursor = db.cursor()
@@ -73,7 +76,7 @@ class MysqlManager:
             logging.info("success")
         except:
             db.rollback()
-            logging.info("fail")
+            logging.error("fail")
 
     @MyLog
     def add_path_to_item_url(self, item_url, save_dir):
@@ -88,7 +91,7 @@ class MysqlManager:
             logging.info("success")
         except:
             db.rollback()
-            logging.info("fail")
+            logging.error("fail")
 
     @MyLog
     def update_status_to_item_url(self, item_url):
@@ -104,4 +107,4 @@ class MysqlManager:
         except:
             # Rollback in case there is any error
             db.rollback()
-            logging.info("fail")
+            logging.error("fail")

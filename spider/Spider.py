@@ -52,7 +52,7 @@ class Spider:
         opt = webdriver.ChromeOptions()
         agent = self.agent_pool.get_data5u_agent()
         opt.add_argument("--proxy-server=http://%s" % agent)
-        opt.add_argument('--headless')
+        # opt.add_argument('--headless')
         logging.info("agent : %s" % agent)
         driver = webdriver.Chrome(options=opt)
         return driver
@@ -70,7 +70,7 @@ class Spider:
             except:
                 times += 1
                 traceback.print_exc()
-                self.sleep(15, 20)
+                self.sleep(10, 15)
         if times >= self.max_try_times:
             logging.error("%s had failed %d times" % (func.__name__, times))
             exit(0)
