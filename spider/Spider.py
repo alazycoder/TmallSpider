@@ -10,9 +10,9 @@ import os
 import re
 import logging
 
-from spider.AgentPool import AgentPool
-from spider.MysqlManager import MysqlManager
-from log.MyLog import MyLog
+from util.AgentPool import AgentPool
+from util.MysqlManager import MysqlManager
+from logger.MyLog import MyLog
 
 
 class Spider:
@@ -35,6 +35,7 @@ class Spider:
 
     def work(self):
         self.try_func(self.get_all_item_url)
+        print(len(self.all_item_url))
         for item_url in self.all_item_url:
             if not self.mysql_manager.check_item_url_crawled(item_url):
                 self.mysql_manager.add_one_record_to_history(item_url, self.brand, self.class_)
@@ -44,17 +45,22 @@ class Spider:
                 save_dir = os.path.join(self.original_dir, uid)
                 self.mysql_manager.add_path_to_item_url(item_url, save_dir)
                 for image_url in all_image_url:
+                    try:
                         self.save_image(image_url, save_dir)
+                    except:
+                        logging.error("image save failed %s" % image_url)
                 self.mysql_manager.update_status_to_item_url(item_url)
 
     def get_driver(self):
         # 从这里得到的driver要执行quit函数
         opt = webdriver.ChromeOptions()
-        agent = self.agent_pool.get_data5u_agent()
+        agent = self.agent_pool.get_daxiang_agent()
         opt.add_argument("--proxy-server=http://%s" % agent)
         # opt.add_argument('--headless')
         logging.info("agent : %s" % agent)
         driver = webdriver.Chrome(options=opt)
+        driver.set_page_load_timeout(30)
+        driver.command_executor.set_timeout(30)
         return driver
 
     def try_func(self, func, *args):
@@ -121,23 +127,33 @@ class Spider:
     def get_all_item_url(self):
         driver = self.get_driver()
         driver.get(self.list_url)
-        page_len = len(driver.page_source)
-        while True:
+        scroll_down_times = 0
+        # page_len = len(driver.page_source)
+        page_source = ""
+        while page_source.find(u"已经看到最后") == -1:
+            page_source = driver.page_source
             soup = BeautifulSoup(driver.page_source, "html.parser")
             item_list = soup.find_all('a', {'class': 'tile_item'})
+            if len(item_list) == 0:
+                break
             for item in item_list:
                 self.all_item_url.add("https:" + item.attrs["href"])
-
             driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
             self.sleep(1, 1.5)
-            new_page_len = len(driver.page_source)
-            logging.info("page len : %d(old) %d(new)" %(page_len, new_page_len))
-            if page_len == new_page_len:
+            scroll_down_times += 1
+            print(scroll_down_times)
+            if scroll_down_times >= 100:
                 break
-            page_len = new_page_len
+            # new_page_len = len(driver.page_source)
+            # logging.info("page len : %d(old) %d(new)" %(page_len, new_page_len))
+            # if page_len == new_page_len:
+            #     page_source = driver.page_source
+            #     break
+            # page_len = new_page_len
         driver.quit()
         logging.info("this page has %d items" % len(self.all_item_url))
-        return len(self.all_item_url)
+        return page_source.find(u"已经看到最后") != -1
+        # return len(self.all_item_url)
 
     @MyLog
     def save_image(self, url, save_dir):
@@ -155,7 +171,6 @@ class Spider:
     def sleep(self, l, r):
         stop_time = random.uniform(l, r)
         time.sleep(stop_time)
-
 
 # url = "https://handuyishe.m.tmall.com/shop/shop_auction_search.htm?spm=a1z60.7754813.0.0.54114ef5k4qAO6&sort=default&shop_cn=T%E6%81%A4&ascid=950888245&scid=950888245"
 # spider = Spider(url, "handuyishe", "T恤")

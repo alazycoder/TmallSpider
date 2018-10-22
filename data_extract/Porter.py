@@ -1,8 +1,11 @@
 import os
 import shutil
 import re
+import json
+import csv
 
 from classification_network.pick import Picker
+from util.MysqlManager import MysqlManager
 
 
 class FeatureCombiner:
@@ -15,6 +18,7 @@ class Porter:
     def __init__(self, model_path=None):
         self.picker = None
         self.model_path = model_path
+        self.sql_manager = MysqlManager()
 
     def file_collect(self, source, target):
         # 如果source是文件，则将source复制到target下
@@ -40,6 +44,9 @@ class Porter:
         if not os.path.exists(images_target_dir):
             os.makedirs(images_target_dir)
 
+        csv_path = os.path.join(target_dir, "label.csv")
+        csv_writer = csv.writer(open(csv_path, "w"))
+
         data_dirs = os.listdir(source)
         data_dir_pattern = re.compile("\d\d\d\d-\d\d-\d\d")
         for data_dir in data_dirs:
@@ -57,13 +64,32 @@ class Porter:
                     files = os.listdir(final_dir)
                     # if "picked.jpg" not in files:
                     #     self.pick(final_dir)
-                    picked_image = self.pick(final_dir)
-                    image_name = final_dir.replace("\\", "_")
-                    # print(picked_image)
-                    shutil.copyfile(picked_image, os.path.join(images_target_dir, image_name + ".jpg"))
-        # todo label
+                    picked_image_path = self.pick(final_dir)
+                    new_image_name = final_dir.replace("\\", "_")  # 记录图片原来是哪的，便于debug
+                    new_image_path = os.path.join(images_target_dir, new_image_name + ".jpg")
+                    shutil.copyfile(picked_image_path, new_image_path)
+
+                    picked_image_dir, _ = os.path.split(picked_image_path)  # 通过picked_image_dir去数据库中找标签
+                    original_labels_record = self.sql_manager.get_labels_by_path(picked_image_dir)
+                    print("*****:", original_labels_record)
+                    csv_line = [new_image_path, ]
+                    for key in labels:
+                        value = self.pick_value_from_labels_record(key, original_labels_record)
+                        print(value)
+                        csv_line.append(value)
+                    csv_writer.writerow(csv_line)
 
     def pick(self, target_dir):
         if self.picker is None:
             self.picker = Picker(self.model_path)
         return self.picker.pick(work_space=target_dir)
+
+    def pick_value_from_labels_record(self, key, original_record):
+        if original_record is None:
+            return ""
+        original_record = json.loads(original_record)
+        for pair in original_record:
+            for k, v in pair.items():
+                if k == key:
+                    return v
+        return ""

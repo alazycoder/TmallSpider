@@ -1,13 +1,8 @@
-from multiprocessing import Process
-from spider.MysqlManager import MysqlManager
+from util.MysqlManager import MysqlManager
 from Spider import Spider
-import random
 import logging
-import os
-import time
 
-logging.basicConfig(level=logging.ERROR)
-
+logging.basicConfig(filename='./log/20181022.txt', level=logging.INFO)
 
 # def crawl(url, brand, class_):
 #     print(os.getpid(), url, brand, class_)
@@ -17,7 +12,6 @@ logging.basicConfig(level=logging.ERROR)
 
 if __name__ == "__main__":
     records = MysqlManager().fetch_all_source()
-    random.shuffle(records)
     for record in records:
         url = record.get("url")
         brand = record.get("brand")
